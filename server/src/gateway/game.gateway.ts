@@ -55,7 +55,13 @@ export class GameGateway implements OnGatewayConnection {
     const dto = this.parse(joinRoomSchema, payload);
     client.join(dto.roomId);
     await this.rooms.joinRoom(dto.roomId, client.id);
-    const state = await this.rooms.getState(dto.roomId);
+    const count = await this.rooms.getPlayerCount(dto.roomId);
+    let state = await this.rooms.getState(dto.roomId);
+    if (!state && count === 3) {
+      state = await this.rooms.startGame(dto.roomId, Date.now());
+      this.server.to(dto.roomId).emit('state', state);
+      return;
+    }
     if (state) {
       client.emit('state', state);
     }
