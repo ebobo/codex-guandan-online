@@ -17,6 +17,10 @@ export class RoomService {
     await this.redis.expire(this.playersKey(roomId), 60 * 60 * 24);
   }
 
+  async getPlayerCount(roomId: string): Promise<number> {
+    return this.redis.scard(this.playersKey(roomId));
+  }
+
   async startGame(roomId: string, seed: number | string): Promise<GameState> {
     const state = initGame(seed);
     await this.redis.set(this.key(roomId), JSON.stringify(state), 'EX', 60 * 60 * 24);
