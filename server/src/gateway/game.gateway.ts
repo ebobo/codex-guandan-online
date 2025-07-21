@@ -30,11 +30,22 @@ export class GameGateway implements OnGatewayConnection {
   constructor(private rooms: RoomService) {}
 
   handleConnection() {
-    // connection established
+    this.emitRooms();
   }
 
   private parse<T>(schema: z.ZodSchema<T>, data: unknown): T {
     return schema.parse(data);
+  }
+
+  private async emitRooms() {
+    const rooms = await this.rooms.listRooms();
+    this.server.emit('rooms', rooms);
+  }
+
+  @SubscribeMessage('listRooms')
+  async listRooms(@ConnectedSocket() client: Socket) {
+    const rooms = await this.rooms.listRooms();
+    client.emit('rooms', rooms);
   }
 
   @SubscribeMessage('createRoom')
@@ -45,6 +56,7 @@ export class GameGateway implements OnGatewayConnection {
     const dto = this.parse(createRoomSchema, payload);
     await this.rooms.createRoom(dto.roomId);
     client.join(dto.roomId);
+    this.emitRooms();
   }
 
   @SubscribeMessage('joinRoom')
@@ -55,6 +67,7 @@ export class GameGateway implements OnGatewayConnection {
     const dto = this.parse(joinRoomSchema, payload);
     client.join(dto.roomId);
     await this.rooms.joinRoom(dto.roomId, client.id);
+    this.emitRooms();
     const count = await this.rooms.getPlayerCount(dto.roomId);
     let state = await this.rooms.getState(dto.roomId);
     if (!state && count === 3) {

@@ -11,6 +11,15 @@ body {
   padding: 1rem;
 }
 
+.status {
+  font-weight: bold;
+}
+
+.room-list {
+  list-style: none;
+  padding: 0;
+}
+
 .slots {
   display: flex;
   gap: 0.5rem;
