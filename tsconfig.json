@@ -6,7 +6,11 @@
     "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@engine/*": ["engine/src/*"]
+    }
   },
-  "include": ["web", "server"]
+  "include": ["web", "server", "engine"]
 }
