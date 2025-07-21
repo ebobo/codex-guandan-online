@@ -10,6 +10,8 @@ export class RoomService {
 
   async createRoom(roomId: string): Promise<void> {
     await this.redis.set(this.key(roomId), JSON.stringify({}), 'EX', 60 * 60 * 24);
+    await this.redis.sadd(this.roomsKey(), roomId);
+    await this.redis.expire(this.roomsKey(), 60 * 60 * 24);
   }
 
   async joinRoom(roomId: string, player: string): Promise<void> {
@@ -19,6 +21,14 @@ export class RoomService {
 
   async getPlayerCount(roomId: string): Promise<number> {
     return this.redis.scard(this.playersKey(roomId));
+  }
+
+  async listRooms(): Promise<{ roomId: string; players: number }[]> {
+    const ids = await this.redis.smembers(this.roomsKey());
+    const rooms = await Promise.all(
+      ids.map(async (id) => ({ roomId: id, players: await this.getPlayerCount(id) }))
+    );
+    return rooms;
   }
 
   async startGame(roomId: string, seed: number | string): Promise<GameState> {
@@ -46,5 +56,9 @@ export class RoomService {
 
   playersKey(roomId: string): string {
     return `room:${roomId}:players`;
+  }
+
+  roomsKey(): string {
+    return 'rooms';
   }
 }

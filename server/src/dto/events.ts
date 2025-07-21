@@ -32,3 +32,6 @@ export const chatSchema = z.object({
   text: z.string(),
 });
 export type ChatDto = z.infer<typeof chatSchema>;
+
+export const listRoomsSchema = z.undefined();
+export type ListRoomsDto = z.infer<typeof listRoomsSchema>;
